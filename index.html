@@ -17,10 +17,10 @@
   h1{font-size:18px;margin:4px 0 14px;font-weight:600}
   .row{display:flex;gap:10px;align-items:center}
   label{font-size:14px;color:var(--sub);white-space:nowrap}
-  input[type=number]{
-    flex:1;min-width:0;font-size:20px;padding:10px 12px;border-radius:10px;
-    border:1px solid var(--line);background:var(--card);color:var(--text);text-align:center}
-  .size{font-size:14px;color:var(--sub);white-space:nowrap;min-width:92px;text-align:right}
+  .seg{flex:1;display:flex;gap:8px}
+  .seg button{flex:1;font-size:22px;padding:12px 0;border-radius:12px;background:var(--card);color:var(--text);border:1px solid var(--line)}
+  .seg button.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
+  .size{font-size:14px;color:var(--sub);text-align:center;margin:8px 0 14px}
   .display{
     flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:16px;
     height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -53,11 +53,14 @@
   <h1>賓果數字產生器</h1>
 
   <div class="row">
-    <label for="n">幾 × 幾</label>
-    <input id="n" type="number" inputmode="numeric" min="2" max="15" value="5">
-    <div class="size" id="size"></div>
+    <div class="seg" id="seg">
+      <button data-n="5">5</button>
+      <button data-n="6">6</button>
+      <button data-n="7">7</button>
+      <button data-n="8">8</button>
+    </div>
   </div>
-  <div class="err" id="err"></div>
+  <div class="size" id="size"></div>
 
   <button id="reset">新一局</button>
 
@@ -78,7 +81,7 @@
 <script>
 (function(){
   var KEY = 'bingo-gen-v1';
-  var MIN = 2, MAX = 15;
+  var MIN = 5, MAX = 8;
   var $ = function(id){ return document.getElementById(id); };
   var state = { n: 5, drawn: [] };
 
@@ -114,7 +117,8 @@
   }
 
   function render(pop){
-    $('n').value = state.n;
+    var bs = document.querySelectorAll('#seg button');
+    for (var k = 0; k < bs.length; k++) bs[k].classList.toggle('on', +bs[k].dataset.n === state.n);
     $('size').textContent = state.n + '×' + state.n + '（1–' + total() + '）';
     var last = state.drawn[state.drawn.length - 1];
     var cur = $('cur');
@@ -128,21 +132,15 @@
     renderBoard();
   }
 
-  function setN(v){
-    var n = parseInt(v, 10);
-    if (isNaN(n) || n < MIN || n > MAX) {
-      $('err').textContent = '請輸入 ' + MIN + ' ~ ' + MAX + ' 的整數';
-      return;
-    }
-    $('err').textContent = '';
-    if (n !== state.n) { state.n = n; state.drawn = []; }
+  function setN(n){
+    if (n < MIN || n > MAX || n === state.n) return;
+    state.n = n; state.drawn = [];
     save(); render(false);
   }
 
-  $('n').addEventListener('change', function(e){ setN(e.target.value); });
-  $('n').addEventListener('input', function(e){
-    var n = parseInt(e.target.value, 10);
-    if (n >= MIN && n <= MAX) setN(n);
+  $('seg').addEventListener('click', function(e){
+    var b = e.target.closest('button');
+    if (b) setN(parseInt(b.dataset.n, 10));
   });
 
   $('draw').addEventListener('click', function(){
