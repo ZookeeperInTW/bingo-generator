@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>賓果數字產生器</title>
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#f3f1ec; --card:#fbfaf7; --line:#dedad2; --text:#2f3e46; --sub:#7d8a90;
+    --accent:#4a7b95; --accent-text:#ffffff; --hit:#4a7b95; --danger:#b9534a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+  .wrap{max-width:480px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+  h1{font-size:18px;margin:4px 0 14px;font-weight:600}
+  .row{display:flex;gap:10px;align-items:center}
+  label{font-size:14px;color:var(--sub);white-space:nowrap}
+  input[type=number]{
+    flex:1;min-width:0;font-size:20px;padding:10px 12px;border-radius:10px;
+    border:1px solid var(--line);background:var(--card);color:var(--text);text-align:center}
+  .size{font-size:14px;color:var(--sub);white-space:nowrap;min-width:92px;text-align:right}
+  .display{
+    flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .num{font-size:88px;font-weight:700;line-height:1;color:#3f6f88;font-variant-numeric:tabular-nums}
+  .num.pop{animation:pop .25s ease-out}
+  @keyframes pop{from{transform:scale(.6);opacity:.3}to{transform:scale(1);opacity:1}}
+  .meta{margin-top:8px;font-size:13px;color:var(--sub)}
+  .main{display:flex;gap:10px;margin-top:16px}
+  .sep{border:0;border-top:1px solid var(--line);margin:18px 0 0}
+  button{
+    font:inherit;font-size:20px;font-weight:600;border:0;border-radius:14px;padding:16px;
+    cursor:pointer;touch-action:manipulation}
+  #draw{width:112px;flex:none;height:150px;background:var(--accent);color:var(--accent-text)}
+  #reset{width:100%;font-size:16px;padding:12px;background:var(--card);color:var(--text);border:1px solid var(--line)}
+  button:active{transform:scale(.97)}
+  button:disabled{opacity:.4}
+  .hist{margin-top:16px;font-size:13px;color:var(--sub);line-height:1.7;word-break:break-all;min-height:22px}
+  .hist b{color:var(--text);font-weight:600}
+  .board{display:grid;gap:4px;margin-top:14px}
+  .cell{
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;
+    background:var(--card);border:1px solid var(--line);color:var(--sub);font-variant-numeric:tabular-nums}
+  .cell.hit{background:var(--hit);border-color:var(--hit);color:var(--accent-text);font-weight:700}
+  .cell.last{outline:2px solid #e0a458;outline-offset:1px}
+  .err{color:var(--danger);font-size:13px;min-height:18px;margin-top:6px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>賓果數字產生器</h1>
+
+  <div class="row">
+    <label for="n">幾 × 幾</label>
+    <input id="n" type="number" inputmode="numeric" min="2" max="15" value="5">
+    <div class="size" id="size"></div>
+  </div>
+  <div class="err" id="err"></div>
+
+  <button id="reset">新一局</button>
+
+  <hr class="sep">
+
+  <div class="main">
+    <div class="display">
+      <div class="num" id="cur">—</div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <button id="draw">亂數</button>
+  </div>
+
+  <div class="hist" id="hist"></div>
+  <div class="board" id="board"></div>
+</div>
+
+<script>
+(function(){
+  var KEY = 'bingo-gen-v1';
+  var MIN = 2, MAX = 15;
+  var $ = function(id){ return document.getElementById(id); };
+  var state = { n: 5, drawn: [] };
+
+  function load(){
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (s && s.n >= MIN && s.n <= MAX && Array.isArray(s.drawn)) {
+        state.n = s.n;
+        var max = s.n * s.n;
+        state.drawn = s.drawn.filter(function(v){ return v >= 1 && v <= max; });
+      }
+    } catch(e){}
+  }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  function total(){ return state.n * state.n; }
+
+  function renderBoard(){
+    var b = $('board');
+    b.style.gridTemplateColumns = 'repeat(' + state.n + ',1fr)';
+    var fs = state.n <= 5 ? 20 : state.n <= 8 ? 16 : state.n <= 10 ? 13 : 10;
+    var last = state.drawn[state.drawn.length - 1];
+    var html = '';
+    for (var i = 1; i <= total(); i++) {
+      var cls = 'cell';
+      if (state.drawn.indexOf(i) !== -1) cls += ' hit';
+      if (i === last) cls += ' last';
+      html += '<div class="' + cls + '" style="font-size:' + fs + 'px">' + i + '</div>';
+    }
+    b.innerHTML = html;
+  }
+
+  function render(pop){
+    $('n').value = state.n;
+    $('size').textContent = state.n + '×' + state.n + '（1–' + total() + '）';
+    var last = state.drawn[state.drawn.length - 1];
+    var cur = $('cur');
+    cur.textContent = last === undefined ? '—' : last;
+    if (pop) { cur.classList.remove('pop'); void cur.offsetWidth; cur.classList.add('pop'); }
+    var left = total() - state.drawn.length;
+    $('meta').textContent = left === 0 ? '已全部抽完，請按「新一局」' : '已抽 ' + state.drawn.length + ' / 剩 ' + left;
+    $('draw').disabled = left === 0;
+    $('hist').innerHTML = state.drawn.length
+      ? '<b>順序：</b>' + state.drawn.join('、') : '';
+    renderBoard();
+  }
+
+  function setN(v){
+    var n = parseInt(v, 10);
+    if (isNaN(n) || n < MIN || n > MAX) {
+      $('err').textContent = '請輸入 ' + MIN + ' ~ ' + MAX + ' 的整數';
+      return;
+    }
+    $('err').textContent = '';
+    if (n !== state.n) { state.n = n; state.drawn = []; }
+    save(); render(false);
+  }
+
+  $('n').addEventListener('change', function(e){ setN(e.target.value); });
+  $('n').addEventListener('input', function(e){
+    var n = parseInt(e.target.value, 10);
+    if (n >= MIN && n <= MAX) setN(n);
+  });
+
+  $('draw').addEventListener('click', function(){
+    var max = total(), pool = [];
+    for (var i = 1; i <= max; i++) if (state.drawn.indexOf(i) === -1) pool.push(i);
+    if (!pool.length) return;
+    var pick = pool[Math.floor(Math.random() * pool.length)];
+    state.drawn.push(pick);
+    save(); render(true);
+  });
+
+  $('reset').addEventListener('click', function(){
+    state.drawn = [];   // 保留 n
+    save(); render(false);
+  });
+
+  load(); render(false);
+})();
+</script>
+</body>
+</html>
