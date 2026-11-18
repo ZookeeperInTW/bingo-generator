@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>賓果數字產生器</title>
 <style>
   :root{
@@ -11,6 +11,7 @@
     --accent:#4a7b95; --accent-text:#ffffff; --hit:#4a7b95; --danger:#b9534a;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   html,body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
   .wrap{max-width:480px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
@@ -156,6 +157,14 @@
     state.drawn = [];   // 保留 n
     save(); render(false);
   });
+
+  // 鎖定畫面：禁止雙指縮放（iOS 忽略 user-scalable=no，需額外處理）
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(t){
+    document.addEventListener(t, function(e){ e.preventDefault(); });
+  });
+  document.addEventListener('touchmove', function(e){
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
 
   load(); render(false);
 })();
