@@ -25,7 +25,6 @@
   .seg button{flex:1;font-size:17px;font-weight:600;padding:8px 0;border-radius:10px;
     background:var(--card);color:var(--text);border:1px solid var(--line)}
   .seg button.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
-  .size{font-size:13px;color:var(--sub);text-align:center;margin:8px 0 0}
 
   /* 中間：目前號碼 */
   .display{
@@ -68,7 +67,6 @@
       <button data-n="8">8</button>
     </div>
   </div>
-  <div class="size" id="size"></div>
 
   <div class="display">
     <div class="num" id="cur">—</div>
@@ -127,7 +125,6 @@
   function render(pop){
     var bs = document.querySelectorAll('#seg button');
     for (var k = 0; k < bs.length; k++) bs[k].classList.toggle('on', +bs[k].dataset.n === state.n);
-    $('size').textContent = state.n + '×' + state.n + '（1–' + total() + '）';
     var last = state.drawn[state.drawn.length - 1];
     var cur = $('cur');
     cur.textContent = last === undefined ? '—' : last;
