@@ -9,51 +9,61 @@
     color-scheme:light;
     --bg:#f3f1ec; --card:#fbfaf7; --line:#dedad2; --text:#2f3e46; --sub:#7d8a90;
     --accent:#4a7b95; --accent-text:#ffffff; --hit:#4a7b95; --danger:#b9534a;
+    --bar-h:96px;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}
   html,body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
-  .wrap{max-width:480px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
-  h1{font-size:18px;margin:4px 0 14px;font-weight:600}
-  .row{display:flex;gap:10px;align-items:center}
-  label{font-size:14px;color:var(--sub);white-space:nowrap}
-  .seg{flex:1;display:flex;gap:8px}
-  .seg button{flex:1;font-size:22px;padding:12px 0;border-radius:12px;background:var(--card);color:var(--text);border:1px solid var(--line)}
+  .wrap{max-width:480px;margin:0 auto;
+    padding:12px 16px calc(var(--bar-h) + 20px + env(safe-area-inset-bottom))}
+
+  /* 上方：低頻設定（幾成幾） */
+  .top{display:flex;align-items:center;gap:10px}
+  .top .lbl{font-size:13px;color:var(--sub);white-space:nowrap}
+  .seg{flex:1;display:flex;gap:6px}
+  .seg button{flex:1;font-size:17px;font-weight:600;padding:8px 0;border-radius:10px;
+    background:var(--card);color:var(--text);border:1px solid var(--line)}
   .seg button.on{background:var(--accent);color:var(--accent-text);border-color:var(--accent)}
-  .size{font-size:14px;color:var(--sub);text-align:center;margin:8px 0 14px}
+  .size{font-size:13px;color:var(--sub);text-align:center;margin:8px 0 0}
+
+  /* 中間：目前號碼 */
   .display{
-    flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:16px;
-    height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .num{font-size:88px;font-weight:700;line-height:1;color:#3f6f88;font-variant-numeric:tabular-nums}
+    margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:18px;
+    height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .num{font-size:116px;font-weight:700;line-height:1;color:#3f6f88;font-variant-numeric:tabular-nums}
   .num.pop{animation:pop .25s ease-out}
   @keyframes pop{from{transform:scale(.6);opacity:.3}to{transform:scale(1);opacity:1}}
-  .meta{margin-top:8px;font-size:13px;color:var(--sub)}
-  .main{display:flex;gap:10px;margin-top:16px}
-  .sep{border:0;border-top:1px solid var(--line);margin:18px 0 0}
-  button{
-    font:inherit;font-size:20px;font-weight:600;border:0;border-radius:14px;padding:16px;
-    cursor:pointer;touch-action:manipulation}
-  #draw{width:112px;flex:none;height:150px;background:var(--accent);color:var(--accent-text)}
-  #reset{width:100%;font-size:16px;padding:12px;background:var(--card);color:var(--text);border:1px solid var(--line)}
-  button:active{transform:scale(.97)}
-  button:disabled{opacity:.4}
-  .hist{margin-top:16px;font-size:13px;color:var(--sub);line-height:1.7;word-break:break-all;min-height:22px}
+  .meta{margin-top:10px;font-size:14px;color:var(--sub)}
+
+  .hist{margin-top:14px;font-size:13px;color:var(--sub);line-height:1.7;word-break:break-all;min-height:22px}
   .hist b{color:var(--text);font-weight:600}
-  .board{display:grid;gap:4px;margin-top:14px}
+  .board{display:grid;gap:4px;margin-top:12px}
   .cell{
     aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;
     background:var(--card);border:1px solid var(--line);color:var(--sub);font-variant-numeric:tabular-nums}
   .cell.hit{background:var(--hit);border-color:var(--hit);color:var(--accent-text);font-weight:700}
   .cell.last{outline:2px solid #e0a458;outline-offset:1px}
-  .err{color:var(--danger);font-size:13px;min-height:18px;margin-top:6px;text-align:center}
+
+  /* 底部固定：高頻操作（新一局、抽號） */
+  .bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:10;
+    background:var(--bg);border-top:1px solid var(--line);
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+  .bar-in{max-width:480px;margin:0 auto;display:flex;gap:10px}
+  .bar button{
+    font:inherit;font-weight:600;border:0;border-radius:16px;height:68px;
+    cursor:pointer;touch-action:manipulation}
+  #reset{flex:1;font-size:18px;background:var(--card);color:var(--text);border:1px solid var(--line)}
+  #draw{flex:2;font-size:28px;background:var(--accent);color:var(--accent-text)}
+  .bar button:active,.seg button:active{transform:scale(.97)}
+  .bar button:disabled{opacity:.4}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>賓果數字產生器</h1>
-
-  <div class="row">
+  <div class="top">
+    <span class="lbl">幾 × 幾</span>
     <div class="seg" id="seg">
       <button data-n="5">5</button>
       <button data-n="6">6</button>
@@ -63,20 +73,20 @@
   </div>
   <div class="size" id="size"></div>
 
-  <button id="reset">新一局</button>
-
-  <hr class="sep">
-
-  <div class="main">
-    <div class="display">
-      <div class="num" id="cur">—</div>
-      <div class="meta" id="meta"></div>
-    </div>
-    <button id="draw">抽號</button>
+  <div class="display">
+    <div class="num" id="cur">—</div>
+    <div class="meta" id="meta"></div>
   </div>
 
   <div class="hist" id="hist"></div>
   <div class="board" id="board"></div>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <button id="reset">新一局</button>
+    <button id="draw">抽號</button>
+  </div>
 </div>
 
 <script>
